@@ -3,7 +3,8 @@ from math import log
 from numpy import random
 
 class Mx_M_C:
-    def __init__(self, id:int, servers_count:int, mu:float, gamma:float, state:bool=True, k_mu:int=1, k_gamma:int=1) -> None:
+    def __init__(self, lambda_:float, servers_count:int, mu:float) -> None:
+        self.lambda_ = lambda_
         self.servers_count = servers_count
         self.mu = mu
         self.servers_states = [True for _ in range(servers_count)]
@@ -17,29 +18,32 @@ class Mx_M_C:
         self.last_state = 0
         self.states = [0]
     
-    def service_time(self):
+    def arrival_time(self) -> float:
+        return -log(random.random()) / self.lambda_
+
+    def service_time(self) -> float:
         return -log(random.random()) / self.mu
     
-    def export_demands(self):
+    def export_demands(self) -> None:
         with open(f'demands.json', 'wb') as f:
             json.dump(self.demands, f)
 
-    def export_states(self):
+    def export_states(self) -> None:
         with open(f'states.json', 'wb') as f:
             json.dump(self.states, f)
     
-    def import_demands(self):
+    def import_demands(self) -> dict:
         with open(f'demands.json', 'rb') as f:
             return json.load(f)
 
-    def import_states(self):
+    def import_states(self) -> list:
         with open(f'states.json', 'rb') as f:
             return json.load(f)
 
-    def current_demands(self):
-        return [item for item in self.demands.keys()]
+    def current_demands(self) -> tuple:
+        return (item for item in self.demands.keys())
     
-    def update_time_states(self, t_now:float):
+    def update_time_states(self, t_now:float) -> None:
         states = self.import_states()
 
         if len(states) <= len(self.demands) + 1:

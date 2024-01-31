@@ -35,6 +35,19 @@ def simulation(system:Mx_M_C):
             schedule[server] = t + system.service_time()
             print(f'\tтребование {demand} начало обслуживаться на приборе {server}')
 
+        if any(schedule[1:] == t):
+            indicator = True
+            server = schedule[1:].index(t)
+            system.servers_states[server] = True
+            for demand in system.demands.keys():
+                if system.demands[demand][-1] == server:
+                    system.demands[demand][-1] = system.servers_count + 1
+                    break
+            schedule[server] = t_max + 1
+            print(f'\tтребование {demand} завершило обслуживаться на приборе {server} и ожидает сборки')
+
+            # проверка: если все требования одного пакета ожидают сборки, то требование выходит из системы
+
 
 if __name__ == "__main__":
     lambda_ = 1

@@ -24,7 +24,16 @@ def simulation(system:Mx_M_C):
             for i in range(demands_count):
                 system.demands[i] = (t, pack, 0)
         
-
+        if any(system.servers_states) and len(system.demands) > 0:
+            indicator = True
+            server = system.servers_states.index(True)
+            system.servers_states[server] = False
+            for demand in system.demands.keys():
+                if system.demands[demand][-1] == 0:
+                    system.demands[demand][-1] = server
+                    break
+            schedule[server] = t + system.service_time()
+            print(f'\tтребование {demand} начало обслуживаться на приборе {server}')
 
 
 if __name__ == "__main__":

@@ -21,6 +21,9 @@ class Mx_M_C:
     def arrival_time(self) -> float:
         return -log(random.random()) / self.lambda_
 
+    def pack_size(self) -> int:
+        return 3
+
     def service_time(self) -> float:
         return -log(random.random()) / self.mu
     

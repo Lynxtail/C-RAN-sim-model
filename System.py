@@ -13,14 +13,12 @@ class Mx_M_C:
         #   [id требования] : 
         #       [[время генерации], 
         #       [id пакета],
-        #       [состояние = 0 - очередь, ... - номер прибора, servers_count+1 - ожидает сборки]]
+        #       [состояние = -1 - очередь, 0...servers_count-1 - номер прибора, servers_count - ожидает сборки]]
         # }
         self.last_state = 0
         self.states = [0]
-        f = open('demands.json', 'wb')
-        f.close()
-        f = open('states.json', 'wb')
-        f.close()
+        self.export_demands()
+        self.export_states()
     
     def arrival_time(self) -> float:
         return -log(random.random()) / self.lambda_
@@ -32,19 +30,19 @@ class Mx_M_C:
         return -log(random.random()) / self.mu
     
     def export_demands(self) -> None:
-        with open(f'demands.json', 'wb') as f:
+        with open(f'demands.json', 'w') as f:
             json.dump(self.demands, f)
 
     def export_states(self) -> None:
-        with open(f'states.json', 'wb') as f:
+        with open(f'states.json', 'w') as f:
             json.dump(self.states, f)
     
     def import_demands(self) -> dict:
-        with open(f'demands.json', 'rb') as f:
+        with open(f'demands.json') as f:
             return json.load(f)
 
     def import_states(self) -> list:
-        with open(f'states.json', 'rb') as f:
+        with open(f'states.json') as f:
             return json.load(f)
 
     def current_demands(self) -> tuple:
@@ -53,10 +51,15 @@ class Mx_M_C:
     def update_time_states(self, t_now:float) -> None:
         states = self.import_states()
 
-        if len(states) <= len(self.demands) + 1:
-            states.extend([0])
+        if len(states) <= len(self.demands):
+            states.extend([0] * (len(self.demands) - len(states) + 1))
 
-        states[len(self.demands)] += t_now - self.last_state
+        try:
+            states[len(self.demands)] += t_now - self.last_state
+        except IndexError:
+            print(states, len(states), len(self.demands), self.last_state)
+            raise IndexError
+        
         self.last_state = t_now
         self.export_states()
 

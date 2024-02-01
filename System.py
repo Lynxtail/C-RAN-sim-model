@@ -24,19 +24,24 @@ class Mx_M_C:
     
     # ------------------------------------------------------------------
     # случайные величины генерируются методом обратного преобразования
-    # def arrival_time(self) -> float:
-    #     return -log(random.random()) / self.lambda_
+    def arrival_time(self) -> float:
+        return -log(random.random()) / self.lambda_
 
-    # def pack_size(self, b:float) -> int:
-    #     y = random.random()
-    #     k = 1
-    #     p = 1 - 1 / b
-    #     while (1 - (1 - p)**(k - 1)) <= y < (1 - (1 - p)**k):
-    #         k += 1
-    #     return k
+    def pack_size(self, b:float) -> int:
+        y = random.random()
+        k = 0
+        p = 1 - 1 / b
+        sum_ = p
+        prod = p
+        q = 1 - p
+        while (y > sum_):
+            prod *= q
+            sum_ += prod
+            k += 1
+        return k
     
-    # def service_time(self) -> float:
-    #     return -log(random.random()) / self.mu
+    def service_time(self) -> float:
+        return -log(random.random()) / self.mu
 
     # ------------------------------------------------------------------
 
@@ -53,14 +58,14 @@ class Mx_M_C:
     # ------------------------------------------------------------------
 
     # случайные величины генерируются библиотекой scipy.stats
-    def arrival_time(self) -> float:
-        return scipy.stats.expon.rvs(scale=1/self.lambda_)
+    # def arrival_time(self) -> float:
+    #     return scipy.stats.expon(scale=1/self.lambda_).rvs()
 
-    def service_time(self) -> float:
-        return scipy.stats.expon.rvs(scale=1/self.mu)
+    # def service_time(self) -> float:
+    #     return scipy.stats.expon(scale=1/self.mu).rvs()
     
-    def pack_size(self, b:float) -> float:
-        return scipy.stats.geom.rvs(scale=1-(1/b))
+    # def pack_size(self, b:float) -> float:
+    #     return scipy.stats.geom(scale=1-(1/b)).rvs()
     # ------------------------------------------------------------------
 
     def export_demands(self) -> None:

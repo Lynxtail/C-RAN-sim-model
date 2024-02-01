@@ -1,15 +1,10 @@
 import numpy as np
 from System import Mx_M_C
 
-def calculate_characteristics(pack:int, ready_packs_count:int, sum_packs_life_time:float, t:float):
-    print(f'\nВсего пакетов получено: {pack}')
-    # print(f'Обслужено пакетов: {ready_packs_count}')
-    # print(f'Оценка стационарного распределения вероятностей состояний системы:')
-    # [print(f'') for ]
 
 def simulation(system:Mx_M_C, b:float):
     t = 0 # текущее модельное время
-    t_max = 10**1 # максимальное модельное время
+    t_max = 10**4 # максимальное модельное время
     pack = 0
     schedule = [t_max + 1] * (system.servers_count + 1)
     schedule[0] = 0
@@ -44,8 +39,8 @@ def simulation(system:Mx_M_C, b:float):
 
         if any([process == t for process in schedule[1:]]):
             indicator = True
-            server = schedule.index(t)
-            if server == 0:
+            server = schedule.index(t) - 1
+            if server == -1:
                 raise Exception
             system.servers_states[server] = True
             for serviced_demand in system.demands.keys():
@@ -74,10 +69,8 @@ def simulation(system:Mx_M_C, b:float):
                 system.packs -= 1
                 ready_packs_count += 1
                 sum_packs_life_time += t - item[1][0]
-            
             system.update_time_states(t)
 
-        
         if not indicator:
             system.update_time_states(t)
             print(schedule)
@@ -85,11 +78,10 @@ def simulation(system:Mx_M_C, b:float):
 
     print(f'\nВсего пакетов получено: {pack}')
     print(f'Обслужено пакетов: {ready_packs_count}')
-    print(f'Оценка стационарного распределения вероятностей состояний системы:')
-    [print(f'\tp(n = {n}) = {state / t_max}') for n, state in system.import_states().items()]
-    print(f'Проверка: {sum([state / t_max for state in system.import_states().values()])}')
-
-        # return pack, ready_packs_count, sum_packs_life_time, t
+    with open('output.txt', 'w') as f:
+        f.write(f'Оценка стационарного распределения вероятностей состояний системы:\n')
+        [f.write(f'\tp(n = {n}) = {state / t_max}\n') for n, state in system.import_states().items()]
+    print(f'Проверка оценки стационарного распредления: {sum([state / t_max for state in system.import_states().values()])}')
 
 if __name__ == "__main__":
     lambda_ = 1 / 10

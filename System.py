@@ -17,6 +17,10 @@ class Mx_M_C:
         # }
         self.last_state = 0
         self.states = [0]
+        f = open('demands.json', 'wb')
+        f.close()
+        f = open('states.json', 'wb')
+        f.close()
     
     def arrival_time(self) -> float:
         return -log(random.random()) / self.lambda_

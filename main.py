@@ -40,7 +40,7 @@ def simulation(system:Mx_M_C):
             schedule[server] = t + system.service_time()
             print(f'\tтребование {demand} начало обслуживаться на приборе {server}')
 
-        if any(schedule[1:] == t):
+        if any([process == t for process in schedule[1:]]):
             indicator = True
             server = schedule[1:].index(t)
             system.servers_states[server] = True

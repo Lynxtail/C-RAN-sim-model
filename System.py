@@ -25,15 +25,17 @@ class Mx_M_C:
     # ------------------------------------------------------------------
     # случайные величины генерируются методом обратного преобразования
     def arrival_time(self) -> float:
+        random.seed()
         return -log(random.random()) / self.lambda_
 
     def pack_size(self, b:float) -> int:
+        random.seed()
         y = random.random()
-        k = 0
+        k = 1
         p = 1 - 1 / b
-        sum_ = p
-        prod = p
         q = 1 - p
+        prod = p * q
+        sum_ = p + prod
         while (y > sum_):
             prod *= q
             sum_ += prod
@@ -41,6 +43,7 @@ class Mx_M_C:
         return k
     
     def service_time(self) -> float:
+        random.seed()
         return -log(random.random()) / self.mu
 
     # ------------------------------------------------------------------

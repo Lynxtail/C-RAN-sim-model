@@ -1,6 +1,7 @@
 import json
 from math import log
 from numpy import random
+import scipy.stats
 
 class Mx_M_C:
     def __init__(self, lambda_:float, servers_count:int, mu:float) -> None:
@@ -21,15 +22,47 @@ class Mx_M_C:
         self.export_demands()
         self.export_states()
     
-    def arrival_time(self) -> float:
-        return -log(random.random()) / self.lambda_
+    # ------------------------------------------------------------------
+    # случайные величины генерируются методом обратного преобразования
+    # def arrival_time(self) -> float:
+    #     return -log(random.random()) / self.lambda_
 
-    def pack_size(self) -> int:
-        return 3
+    # def pack_size(self, b:float) -> int:
+    #     y = random.random()
+    #     k = 1
+    #     p = 1 - 1 / b
+    #     while (1 - (1 - p)**(k - 1)) <= y < (1 - (1 - p)**k):
+    #         k += 1
+    #     return k
+    
+    # def service_time(self) -> float:
+    #     return -log(random.random()) / self.mu
+
+    # ------------------------------------------------------------------
+
+    # случайные величины генерируются библиотекой random
+    # def arrival_time(self) -> float:
+    #     return random.exponential(1 / self.lambda_)
+
+    # def pack_size(self, b:float) -> int:
+    #     return random.geometric(1 - (1 / b))
+
+    # def service_time(self) -> float:
+    #     return random.exponential(1 / self.mu)
+
+    # ------------------------------------------------------------------
+
+    # случайные величины генерируются библиотекой scipy.stats
+    def arrival_time(self) -> float:
+        return scipy.stats.expon.rvs(scale=1/self.lambda_)
 
     def service_time(self) -> float:
-        return -log(random.random()) / self.mu
+        return scipy.stats.expon.rvs(scale=1/self.mu)
     
+    def pack_size(self, b:float) -> float:
+        return scipy.stats.geom.rvs(scale=1-(1/b))
+    # ------------------------------------------------------------------
+
     def export_demands(self) -> None:
         with open(f'demands.json', 'w') as f:
             json.dump(self.demands, f)

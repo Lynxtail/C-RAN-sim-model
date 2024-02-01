@@ -16,7 +16,8 @@ class Mx_M_C:
         #       [состояние = -1 - очередь, 0...servers_count-1 - номер прибора, servers_count - ожидает сборки]]
         # }
         self.last_state = 0
-        self.states = [0]
+        self.states = {'0': 0}
+        self.packs = 0
         self.export_demands()
         self.export_states()
     
@@ -41,7 +42,7 @@ class Mx_M_C:
         with open(f'demands.json') as f:
             return json.load(f)
 
-    def import_states(self) -> list:
+    def import_states(self) -> dict:
         with open(f'states.json') as f:
             return json.load(f)
 
@@ -49,17 +50,24 @@ class Mx_M_C:
         return (item for item in self.demands.keys())
     
     def update_time_states(self, t_now:float) -> None:
-        states = self.import_states()
+        self.states = self.import_states()
 
-        if len(states) <= len(self.demands):
-            states.extend([0] * (len(self.demands) - len(states) + 1))
+        # if len(states) <= len(self.demands):
+        if len(self.states) <= self.packs:
+            # states.extend([0] * (len(self.demands) - len(states) + 1))
+            # states.update({state: 0 for state in range(len(states), len(self.demands) + 1)})
+            self.states.update({str(state): 0 for state in range(len(self.states), self.packs + 1)})
 
         try:
-            states[len(self.demands)] += t_now - self.last_state
+            # states[len(self.demands)] += t_now - self.last_state
+            self.states[str(self.packs)] += t_now - self.last_state
         except IndexError:
-            print(states, len(states), len(self.demands), self.last_state)
+            print(self.states, len(self.states), len(self.demands), self.last_state)
             raise IndexError
-        
+        except KeyError:
+            print(self.packs, self.states)
+            raise KeyError
+
         self.last_state = t_now
         self.export_states()
 

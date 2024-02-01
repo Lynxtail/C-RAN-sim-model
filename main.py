@@ -7,7 +7,7 @@ def calculate_characteristics(pack:int, ready_packs_count:int, sum_packs_life_ti
     # print(f'Оценка стационарного распределения вероятностей состояний системы:')
     # [print(f'') for ]
 
-def simulation(system:Mx_M_C):
+def simulation(system:Mx_M_C, b:float):
     t = 0 # текущее модельное время
     t_max = 10**1 # максимальное модельное время
     pack = 0
@@ -24,7 +24,7 @@ def simulation(system:Mx_M_C):
             indicator = True
             schedule[0] = t + system.arrival_time()
             pack += 1
-            demands_count = system.pack_size()
+            demands_count = system.pack_size(b)
             system.packs += 1
             print(f'\tПакет {pack} из {demands_count} требований поступил в систему')
             for i in range(1, demands_count + 1):
@@ -39,7 +39,7 @@ def simulation(system:Mx_M_C):
                 if system.demands[demand][-1] == -1:
                     system.demands[demand][-1] = server
                     break
-            schedule[server] = t + system.service_time()
+            schedule[server + 1] = t + system.service_time()
             print(f'\tтребование {demand} начало обслуживаться на приборе {server + 1}')
 
         if any([process == t for process in schedule[1:]]):
@@ -52,7 +52,7 @@ def simulation(system:Mx_M_C):
                 if system.demands[serviced_demand][-1] == server:
                     system.demands[serviced_demand][-1] = system.servers_count
                     break
-            schedule[server] = t_max + 1
+            schedule[server + 1] = t_max + 1
             print(f'\tтребование {serviced_demand} завершило обслуживаться на приборе {server + 1} и ожидает сборки')
 
             # проверка: если все требования одного пакета ожидают сборки, то требование выходит из системы
@@ -80,6 +80,7 @@ def simulation(system:Mx_M_C):
         
         if not indicator:
             system.update_time_states(t)
+            print(schedule)
             t = min(schedule)
 
     print(f'\nВсего пакетов получено: {pack}')
@@ -91,10 +92,11 @@ def simulation(system:Mx_M_C):
         # return pack, ready_packs_count, sum_packs_life_time, t
 
 if __name__ == "__main__":
-    lambda_ = 1
+    lambda_ = 1 / 10
     servers_count = 5
-    mu = 1
+    mu = 1 / 281
+    b = 5
     system = Mx_M_C(lambda_, servers_count, mu)
-    simulation(system)
+    simulation(system, b)
     # pack, ready_packs_count, sum_packs_life_time, t = simulation(system)
     # calculate_characteristics(simulation(system))

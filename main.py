@@ -25,6 +25,7 @@ def simulation(system:Mx_M_C):
             schedule[0] = t + system.arrival_time()
             pack += 1
             demands_count = system.pack_size()
+            system.packs += 1
             print(f'\tПакет {pack} из {demands_count} требований поступил в систему')
             for i in range(1, demands_count + 1):
                 system.demands[pack + i * 10 ** -(demands_count // 10 + 1)] = [t, pack, -1]
@@ -52,7 +53,7 @@ def simulation(system:Mx_M_C):
                     system.demands[serviced_demand][-1] = system.servers_count
                     break
             schedule[server] = t_max + 1
-            print(f'\tтребование {serviced_demand} завершило обслуживаться на приборе {server} и ожидает сборки')
+            print(f'\tтребование {serviced_demand} завершило обслуживаться на приборе {server + 1} и ожидает сборки')
 
             # проверка: если все требования одного пакета ожидают сборки, то требование выходит из системы
             new_pack = list()
@@ -61,7 +62,7 @@ def simulation(system:Mx_M_C):
                     new_pack.append((other_demand, system.demands[other_demand]))
             flag = True
             for item in new_pack:
-                if item[1][-1] != system.servers_count + 1:
+                if item[1][-1] != system.servers_count:
                     flag = False
                     break
             if flag:
@@ -70,9 +71,12 @@ def simulation(system:Mx_M_C):
                     print(f'{item[0]}', end=' ')
                     system.demands.pop(item[0])
                 print(f'\n\tсобраны в пакет {item[1][1]} и покидают систему')
-                system.update_time_states(t)
+                system.packs -= 1
                 ready_packs_count += 1
                 sum_packs_life_time += t - item[1][0]
+            
+            system.update_time_states(t)
+
         
         if not indicator:
             system.update_time_states(t)
@@ -81,7 +85,8 @@ def simulation(system:Mx_M_C):
     print(f'\nВсего пакетов получено: {pack}')
     print(f'Обслужено пакетов: {ready_packs_count}')
     print(f'Оценка стационарного распределения вероятностей состояний системы:')
-    [print(f'\t{n}: {state / t_max}') for n, state in enumerate(system.import_states())]
+    [print(f'\tp(n = {n}) = {state / t_max}') for n, state in system.import_states().items()]
+    print(f'Проверка: {sum([state / t_max for state in system.import_states().values()])}')
 
         # return pack, ready_packs_count, sum_packs_life_time, t
 

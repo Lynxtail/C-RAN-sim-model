@@ -27,7 +27,7 @@ def simulation(system:Mx_M_C):
             demands_count = system.pack_size()
             print(f'\tПакет {pack} из {demands_count} требований поступил в систему')
             for i in range(demands_count):
-                system.demands[i] = (t, pack, 0)
+                system.demands[i] = [t, pack, 0]
         
         if any(system.servers_states) and len(system.demands) > 0:
             indicator = True

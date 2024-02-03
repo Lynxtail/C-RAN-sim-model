@@ -4,7 +4,7 @@ from System import Mx_M_C
 
 def simulation(system:Mx_M_C, b:float):
     t = 0 # текущее модельное время
-    t_max = 10**4 # максимальное модельное время
+    t_max = 10*6 // round(lambda_) # максимальное модельное время
     pack = 0
     schedule = [t_max + 1] * (system.servers_count + 1)
     schedule[0] = 0

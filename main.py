@@ -4,7 +4,7 @@ from System import Mx_M_C
 
 def simulation(system:Mx_M_C, b:float):
     t = 0 # текущее модельное время
-    t_max = 10*6 // round(lambda_) # максимальное модельное время
+    t_max = round(10**6 / lambda_) # максимальное модельное время
     pack = 0
     schedule = [t_max + 1] * (system.servers_count + 1)
     schedule[0] = 0
@@ -14,7 +14,7 @@ def simulation(system:Mx_M_C, b:float):
     while t < t_max: # происходит процесс имитации
         indicator = False
         print(f'{t}:')
-        system.import_demands()
+        # system.import_demands()
         
         if schedule[0] == t:
             indicator = True
@@ -74,11 +74,11 @@ def simulation(system:Mx_M_C, b:float):
 
         if not indicator:
             system.update_time_states(t)
-            print(schedule)
+            # print(schedule)
             t = min(schedule)
         
-        system.export_demands()
-        system.demands.clear()
+        # system.export_demands()
+        # system.demands.clear()
 
     print(f'\nВсего пакетов получено: {pack}')
     print(f'Обслужено пакетов: {ready_packs_count}')

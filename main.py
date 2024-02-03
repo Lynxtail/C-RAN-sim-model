@@ -82,6 +82,7 @@ def simulation(system:Mx_M_C, b:float):
 
     print(f'\nВсего пакетов получено: {pack}')
     print(f'Обслужено пакетов: {ready_packs_count}')
+    print(f'Среднее время пребывания пакета в системе: {sum_packs_life_time / ready_packs_count}')
     with open('output.txt', 'w') as f:
         f.write(f'Оценка стационарного распределения вероятностей состояний системы:\n')
         [f.write(f'\tp(n = {n}) = {state / t_max}\n') for n, state in system.import_states().items()]

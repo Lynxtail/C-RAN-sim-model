@@ -93,14 +93,10 @@ class Mx_M_C:
     def update_time_states(self, t_now:float) -> None:
         self.states = self.import_states()
 
-        # if len(states) <= len(self.demands):
         if len(self.states) <= self.packs:
-            # states.extend([0] * (len(self.demands) - len(states) + 1))
-            # states.update({state: 0 for state in range(len(states), len(self.demands) + 1)})
             self.states.update({str(state): 0 for state in range(len(self.states), self.packs + 1)})
 
         try:
-            # states[len(self.demands)] += t_now - self.last_state
             self.states[str(self.packs)] += t_now - self.last_state
         except IndexError:
             print(self.states, len(self.states), len(self.demands), self.last_state)

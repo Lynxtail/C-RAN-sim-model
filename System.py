@@ -36,22 +36,6 @@ class Mx_M_C:
     def arrival_time(self) -> float:
         random.seed()
         return -log(random.random()) / self.lambda_
-
-    # размер поступившего пакета:
-    # геометрическое распределение, b - средний размер пакета
-    def pack_size(self, b:float) -> int:
-        random.seed()
-        y = random.random()
-        k = 1
-        p = 1 - 1 / b
-        q = 1 - p
-        prod = p * q
-        sum_ = p + prod
-        while (y > sum_):
-            prod *= q
-            sum_ += prod
-            k += 1
-        return k
     
     # время обслуживания требования:
     # экспоненциальное распределение с параметром мю
@@ -59,30 +43,27 @@ class Mx_M_C:
         random.seed()
         return -log(random.random()) / self.mu
 
-    # ------------------------------------------------------------------
+    # случайные величины генерируются методом обратного преобразования
+    # размер поступившего пакета:
+    # геометрическое распределение, b - средний размер пакета
+    # def pack_size(self, b:float) -> int:
+    #     random.seed()
+    #     y = random.random()
+    #     k = 1
+    #     p = 1 - 1 / b
+    #     q = 1 - p
+    #     prod = p * q
+    #     sum_ = p + prod
+    #     while (y > sum_):
+    #         prod *= q
+    #         sum_ += prod
+    #         k += 1
+    #     return k
 
     # случайные величины генерируются библиотекой random
-    # def arrival_time(self) -> float:
-    #     return random.exponential(1 / self.lambda_)
-
-    # def pack_size(self, b:float) -> int:
-    #     return random.geometric(1 - (1 / b))
-
-    # def service_time(self) -> float:
-    #     return random.exponential(1 / self.mu)
-
-    # ------------------------------------------------------------------
-
-    # случайные величины генерируются библиотекой scipy.stats
-    # def arrival_time(self) -> float:
-    #     return scipy.stats.expon(scale=1/self.lambda_).rvs()
-
-    # def service_time(self) -> float:
-    #     return scipy.stats.expon(scale=1/self.mu).rvs()
-    
-    # def pack_size(self, b:float) -> float:
-    #     return scipy.stats.geom(scale=1-(1/b)).rvs()
-    # ------------------------------------------------------------------
+    # геометрическое распределение, b - средний размер пакета
+    def pack_size(self, b:float) -> int:
+        return random.geometric(1 / b)
 
     # запись данных о требованиях в файл
     def export_demands(self) -> None:

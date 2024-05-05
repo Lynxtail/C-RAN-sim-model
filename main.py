@@ -51,12 +51,12 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                     schedule.append(t_max + 1)
             system.servers_count = servers_count_samples[pointer]
             
-            packs_count[pointer] = packs_count[pointer-1]
-            ready_packs_count[pointer] = ready_packs_count[pointer-1]
+            # packs_count[pointer] = packs_count[pointer-1]
+            # ready_packs_count[pointer] = ready_packs_count[pointer-1]
             # lost_packs_count[pointer] = lost_packs_count[pointer-1]
             # sum_packs_life_time[pointer] = sum_packs_life_time[pointer-1]
-            subframes_count[pointer] = subframes_count[pointer-1]
-            serviced_subframes_count[pointer] = serviced_subframes_count[pointer-1]
+            # subframes_count[pointer] = subframes_count[pointer-1]
+            # serviced_subframes_count[pointer] = serviced_subframes_count[pointer-1]
             # lost_subframes_count[pointer] = lost_subframes_count[pointer-1]
 
         
@@ -207,7 +207,7 @@ if __name__ == "__main__":
     lambda_ = 1 / 10 # интенсивность входящего потока
     servers_count = 70 # число приборов
     mu = 1 / 281 # интенсивность обслуживания
-    b = 5 # средний размер пакета
-    service_time_threshold = 20 # ограничение на время обслуживания пакета
+    b = 1 # средний размер пакета
+    service_time_threshold = 100 # ограничение на время обслуживания пакета
     system = Mx_M_C(lambda_, servers_count, mu)
     simulation(system, b, service_time_threshold)

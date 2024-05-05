@@ -32,7 +32,7 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
     while t < t_max: # происходит процесс имитации
         indicator = False # указывает на то, происходит сейчас какое-то событие или 
                           # нужно продвинуть модельное время
-        print(f'{t}:')
+        print(f'\n{t}:')
         
         
         if t >= t_samples[pointer + 1]:

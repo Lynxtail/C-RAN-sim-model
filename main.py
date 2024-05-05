@@ -46,8 +46,9 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
             pointer += 1
             system.lambda_ = lambda_samples[pointer]
             if system.servers_count < servers_count_samples[pointer]:
-                system.servers_states.append(True)
-                schedule.append(t_max + 1)
+                for _ in range(servers_count_samples[pointer] - system.servers_count):
+                    system.servers_states.append(True)
+                    schedule.append(t_max + 1)
             system.servers_count = servers_count_samples[pointer]
             
             packs_count[pointer] = packs_count[pointer-1]
@@ -141,6 +142,35 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
             system.update_time_states(t)
             # print(schedule)
             t = min(schedule)
+            
+            new_pack = list()
+            for demand in system.demands.keys():
+                if t - system.demands[demand][0] > service_time_threshold:
+                    # for other_demand in system.demands.keys():
+                        # if demand != other_demand and system.demands[other_demand][1] == system.demands[demand][1]:
+                            # new_pack.append((other_demand, system.demands[other_demand]))
+                    new_pack.append(demand)
+                    # break
+            if new_pack:
+                print('\tтребования:', end=' ')
+                for item in new_pack:
+                    if system.demands[item][-1] != -1 and system.demands[item][-1] != system.servers_count:
+                        server = system.demands[item][-1]
+                        try:
+                            system.servers_states[server] = True
+                            schedule[server + 1] = t_max + 1
+                        except Exception:
+                            print(server, system.servers_count, len(system.servers_states))
+                            raise Exception
+                    print(f'{item}', end=' ')
+                    try:
+                        system.demands.pop(item)
+                    except KeyError:
+                        print(new_pack)
+                        raise KeyError
+                print(f'\n\tтеряются')
+                system.packs -= 1
+                lost_packs_count[pointer] += 1
 
 
         
@@ -174,6 +204,6 @@ if __name__ == "__main__":
     servers_count = 70 # число приборов
     mu = 1 / 281 # интенсивность обслуживания
     b = 5 # средний размер пакета
-    service_time_threshold = 2000 # ограничение на время обслуживания пакета
+    service_time_threshold = 20 # ограничение на время обслуживания пакета
     system = Mx_M_C(lambda_, servers_count, mu)
     simulation(system, b, service_time_threshold)

@@ -1,4 +1,5 @@
 import json
+import numpy as np
 from math import log
 from numpy import random
 import scipy.stats
@@ -7,11 +8,11 @@ import scipy.stats
 class Mx_M_C:
 
     # конструктор
-    def __init__(self, lambda_:float, servers_count:int, mu:float) -> None:
+    def __init__(self, lambda_:float, servers_count:float, mu:float) -> None:
         self.lambda_ = lambda_
         self.servers_count = servers_count
+        self.servers_states = [True for _ in range(self.servers_count)]
         self.mu = mu
-        self.servers_states = [True for _ in range(servers_count)]
         self.demands = dict() 
         # требования описываются в виде элементов словаря:
         # {

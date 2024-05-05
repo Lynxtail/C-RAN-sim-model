@@ -179,7 +179,11 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
 
     print(f'\nВсего пакетов получено: {pack}')
     print(f'Обслужено пакетов: {sum(ready_packs_count)}')
+    print(f'Потеряно пакетов: {sum(lost_packs_count)}')
     print(f'Среднее время пребывания пакета в системе: {sum(sum_packs_life_time) / sum(ready_packs_count) if sum(ready_packs_count) != 0 else 0}')
+    print(f'\nВсего фрагментов получено: {sum(subframes_count)}')
+    print(f'Обслужено фрагментов: {sum(serviced_subframes_count)}')
+    print(f'Потеряно фрагментов: {sum(lost_subframes_count)}')
     with open('output.txt', 'w') as f:
         f.write(f'Оценка стационарного распределения вероятностей состояний системы:\n')
         [f.write(f'\tp(n = {n}) = {state / t_max}\n') for n, state in system.import_states().items()]

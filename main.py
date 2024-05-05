@@ -14,14 +14,18 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
     samples_count = 10
     
     # ready_packs_count = 0 # число обслуженных пакетов
-    ready_packs_count = [0] * samples_count
+    ready_packs_count = [0]
+    packs_count = [0]
+    lost_packs_count = [0]
+
     # sum_packs_life_time = 0 # суммарная длительность пребывания всех обслуженных пакетов в системе
     sum_packs_life_time = [0] * samples_count
-    packs_count = [0] * samples_count
-    lost_packs_count = [0] * samples_count
-    subframes_count = [0] * samples_count
-    serviced_subframes_count = [0] * samples_count
-    lost_subframes_count = [0] * samples_count
+    
+    subframes_count = [0]
+    serviced_subframes_count = [0]
+    lost_subframes_count = [0]
+    
+    time_for_plot = list()
 
     t_samples = tuple(np.linspace(0, t_max, samples_count))
     lambda_samples = tuple(np.linspace(system.lambda_, 10 * system.lambda_, samples_count))
@@ -37,11 +41,9 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
         
         if t >= t_samples[pointer + 1]:
             print(f'При lambda = {system.lambda_} и {system.servers_count} приборах:')
-            lost_packs_count[pointer] = packs_count[pointer] - ready_packs_count[pointer]
-            print(f'\tПакеты:\n\t\tполучено: {packs_count[pointer]}\n\t\tобслужено: {ready_packs_count[pointer]}\n\t\tпотеряно: {lost_packs_count[pointer]}')
-            print(f'\tСреднее время пребывания пакета в системе: {sum_packs_life_time[pointer] / ready_packs_count[pointer] if ready_packs_count[pointer] != 0 else 0}')
-            lost_subframes_count[pointer] = subframes_count[pointer] - serviced_subframes_count[pointer]
-            print(f'\tФрагменты:\n\t\tполучено: {subframes_count[pointer]}\n\t\tобслужено: {serviced_subframes_count[pointer]}\n\t\tпотеряно {lost_subframes_count[pointer]}')
+            print(f'\tПакеты:\n\t\tполучено: {packs_count[-1]}\n\t\tобслужено: {ready_packs_count[-1]}\n\t\tпотеряно: {lost_packs_count[-1]}')
+            print(f'\tСреднее время пребывания пакета в системе: {sum_packs_life_time[pointer] / ready_packs_count[-1] if ready_packs_count[-1] != 0 else 0}')
+            print(f'\tФрагменты:\n\t\tполучено: {subframes_count[-1]}\n\t\tобслужено: {serviced_subframes_count[-1]}\n\t\tпотеряно {lost_subframes_count[-1]}')
 
             pointer += 1
             system.lambda_ = lambda_samples[pointer]
@@ -49,15 +51,6 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                 system.servers_states.append(True)
                 schedule.append(t_max + 1)
             system.servers_count = servers_count_samples[pointer]
-            
-            packs_count[pointer] = packs_count[pointer-1]
-            ready_packs_count[pointer] = ready_packs_count[pointer-1]
-            # lost_packs_count[pointer] = lost_packs_count[pointer-1]
-            # sum_packs_life_time[pointer] = sum_packs_life_time[pointer-1]
-            subframes_count[pointer] = subframes_count[pointer-1]
-            serviced_subframes_count[pointer] = serviced_subframes_count[pointer-1]
-            # lost_subframes_count[pointer] = lost_subframes_count[pointer-1]
-
         
         print(f'Указатель на {pointer}\nПараметры lambda = {system.lambda_}, число приборов = {system.servers_count}')
         
@@ -66,9 +59,9 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
             indicator = True
             schedule[0] = t + system.arrival_time() # определение времени следующей генерации
             pack += 1 
-            packs_count[pointer] += 1
+            packs_count.append(pack)
             demands_count = system.pack_size(b) # определение размера пакета
-            subframes_count[pointer] += demands_count
+            subframes_count.append(demands_count)
             system.packs += 1
             print(f'\tПакет {pack} из {demands_count} требований поступил в систему')
             # создание требований из пакета
@@ -104,7 +97,7 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                     system.demands[serviced_demand][-1] = system.servers_count
                     break
             schedule[server + 1] = t_max + 1
-            serviced_subframes_count[pointer] += 1
+            serviced_subframes_count.append(serviced_subframes_count[-1] + 1)
             print(f'\tтребование {serviced_demand} завершило обслуживаться на приборе {server + 1} и ожидает сборки')
 
             # проверка: если все требования одного пакета ожидают сборки, то требование выходит из системы
@@ -131,7 +124,7 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                     system.demands.pop(item[0])
                 print(f'\n\tсобраны в пакет {item[1][1]} и покидают систему')
                 system.packs -= 1
-                ready_packs_count[pointer] += 1
+                ready_packs_count.append(ready_packs_count[-1] + 1)
                 sum_packs_life_time[pointer] += t - item[1][0]
             
             system.update_time_states(t)
@@ -140,8 +133,10 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
         if not indicator:
             system.update_time_states(t)
             # print(schedule)
+            time_for_plot.append(t)
             t = min(schedule)
-
+            lost_packs_count.append(sum(packs_count) - sum(ready_packs_count))
+            lost_subframes_count.append(sum(subframes_count) - sum(serviced_subframes_count))
 
         
         # system.export_demands()

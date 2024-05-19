@@ -166,6 +166,7 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
 
     results = {'lambda': lambda_,
                'kappa': kappa,
+               't_max': t_max,
                'Total packages': pack,
                'Mean package lifetime': sum_packs_life_time / ready_packs_count if ready_packs_count != 0 else 0,
                'Serviced packages': ready_packs_count,

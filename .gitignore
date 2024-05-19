@@ -2,10 +2,9 @@ demands.json
 states.json
 __pycache__
 test.py
-__pycache__/System.cpython-310.pyc
-output.txt
+__pycache__
 lambda+lifetime.png
-lambda+lifetime.png
-servers+plost.png
-output.txt
+kappa+plost.png
 /out
+output.txt
+p_lost_for_all_kappas.png

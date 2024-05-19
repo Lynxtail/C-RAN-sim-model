@@ -17,11 +17,13 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
     ready_packs_count = 0 # число обслуженных пакетов
     sum_packs_life_time = 0 # суммарная длительность пребывания всех обслуженных пакетов в системе
     
-    packs_count = 0 # общее числов пакетов
     lost_packs_count = 0 # число потерянных пакетов
     subframes_count = 0 # общее число фрагментов
     serviced_subframes_count = 0 # число обслуженных фрагментов
     lost_subframes_count = 0 # число потерянных фрагментов
+
+    u_for_plots = [] # значения м.о. времени пребывания требования
+    p_lost_for_plots = [] # значения вероятности потерь
 
     while t < t_max: # происходит процесс имитации
         indicator = False # указывает на то, происходит сейчас какое-то событие или 
@@ -34,7 +36,6 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
             indicator = True
             schedule[0] = t + system.arrival_time() # определение времени следующей генерации
             pack += 1 
-            packs_count += 1
             demands_count = system.pack_size(b) # определение размера пакета
             subframes_count += demands_count
             system.packs += 1
@@ -138,6 +139,9 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                 print(f'\n\tтеряются')
                 system.packs -= 1
                 lost_packs_count += 1
+
+            u_for_plots.append(sum_packs_life_time / ready_packs_count if ready_packs_count != 0 else 0)
+            p_lost_for_plots.append(lost_packs_count / pack)
         # system.export_demands()
 
     lost_packs_count += system.packs
@@ -160,14 +164,18 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
     print(f'Проверка оценки стационарного распределения: {sum([state / t_max for state in system.import_states().values()])}')
     print(f'Среднее число фрагментов в системе: {sum_np}')
 
-    results = {'Total packages': pack,
+    results = {'lambda': lambda_,
+               'kappa': kappa,
+               'Total packages': pack,
                'Mean package lifetime': sum_packs_life_time / ready_packs_count if ready_packs_count != 0 else 0,
                'Serviced packages': ready_packs_count,
                'Lost packages': lost_packs_count,
                'Total jobs': subframes_count,
                'Serviced jobs': serviced_subframes_count,
                'Lost jobs': lost_subframes_count,
-               'Mean jobs': sum_np}
+               'Mean jobs': sum_np,
+               'u_for_plots': u_for_plots,
+               'p_lost_for_plots': p_lost_for_plots}
 
     file = f'{round(lambda_, 3)}-{kappa}-{round(mu, 3)}-{b}-{service_time_threshold}.json'
     with open(f'out/{file}', 'w') as f:

@@ -29,11 +29,11 @@ else:
     for file in os.listdir('out'):
         os.remove(os.path.join('out', file))
 
-if type(lambda_) != float:
+if lambda_[0] != lambda_[-1] or kappa[0] != kappa[-1]:
     for i in range(len(lambda_)):
         subprocess.run(['python3', 'main.py', str(lambda_[i]), str(kappa[i]), str(mu[i]), str(b[i]), str(service_time_threshold[i])])
 else:
-    subprocess.run(['python3', 'main.py', str(lambda_), str(kappa), str(mu), str(b), str(service_time_threshold)])
+    subprocess.run(['python3', 'main.py', str(lambda_[0]), str(kappa[0]), str(mu[0]), str(b[0]), str(service_time_threshold[0])])
 
 lambdas = []
 kappas = []

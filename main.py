@@ -1,3 +1,6 @@
+import sys
+import os
+import json
 import numpy as np
 from System import Mx_M_C
 import matplotlib.pyplot as plt
@@ -6,70 +9,33 @@ import matplotlib.pyplot as plt
 def simulation(system:Mx_M_C, b:float, service_time_threshold):
     t = 0 # текущее модельное время
     t_max = round(10**6 / lambda_) # максимальное модельное время
-    t_max = 10**3
+    # t_max = 10**3
     pack = 0 # номер очередного пакета
     schedule = [t_max + 1] * (system.servers_count + 1) # таблица расписания событий
     schedule[0] = 0 # генерация очередного требования произойдёт в момент времени 0
+     
+    ready_packs_count = 0 # число обслуженных пакетов
+    sum_packs_life_time = 0 # суммарная длительность пребывания всех обслуженных пакетов в системе
     
-    samples_count = 10
-    
-    # ready_packs_count = 0 # число обслуженных пакетов
-    ready_packs_count = [0] * samples_count
-    # sum_packs_life_time = 0 # суммарная длительность пребывания всех обслуженных пакетов в системе
-    sum_packs_life_time = [0] * samples_count
-    packs_count = [0] * samples_count
-    lost_packs_count = [0] * samples_count
-    subframes_count = [0] * samples_count
-    serviced_subframes_count = [0] * samples_count
-    lost_subframes_count = [0] * samples_count
-
-    t_samples = tuple(np.linspace(0, t_max, samples_count))
-    lambda_samples = tuple(np.linspace(system.lambda_, 10 * system.lambda_, samples_count))
-    servers_count_samples = tuple(map(int, np.linspace(system.servers_count, system.servers_count * 3, samples_count)))
-    print(t_samples, lambda_samples, servers_count_samples)
-    pointer = 0
+    packs_count = 0 # общее числов пакетов
+    lost_packs_count = 0 # число потерянных пакетов
+    subframes_count = 0 # общее число фрагментов
+    serviced_subframes_count = 0 # число обслуженных фрагментов
+    lost_subframes_count = 0 # число потерянных фрагментов
 
     while t < t_max: # происходит процесс имитации
         indicator = False # указывает на то, происходит сейчас какое-то событие или 
                           # нужно продвинуть модельное время
         print(f'\n{t}:')
         
-        
-        if t >= t_samples[pointer + 1]:
-            print(f'При lambda = {system.lambda_} и {system.servers_count} приборах:')
-            lost_packs_count[pointer] = packs_count[pointer] - ready_packs_count[pointer]
-            print(f'\tПакеты:\n\t\tполучено: {packs_count[pointer]}\n\t\tобслужено: {ready_packs_count[pointer]}\n\t\tпотеряно: {lost_packs_count[pointer]}')
-            print(f'\tСреднее время пребывания пакета в системе: {sum_packs_life_time[pointer] / ready_packs_count[pointer] if ready_packs_count[pointer] != 0 else 0}')
-            lost_subframes_count[pointer] = subframes_count[pointer] - serviced_subframes_count[pointer]
-            print(f'\tФрагменты:\n\t\tполучено: {subframes_count[pointer]}\n\t\tобслужено: {serviced_subframes_count[pointer]}\n\t\tпотеряно {lost_subframes_count[pointer]}')
-
-            pointer += 1
-            system.lambda_ = lambda_samples[pointer]
-            if system.servers_count < servers_count_samples[pointer]:
-                for _ in range(servers_count_samples[pointer] - system.servers_count):
-                    system.servers_states.append(True)
-                    schedule.append(t_max + 1)
-            system.servers_count = servers_count_samples[pointer]
-            
-            # packs_count[pointer] = packs_count[pointer-1]
-            # ready_packs_count[pointer] = ready_packs_count[pointer-1]
-            # lost_packs_count[pointer] = lost_packs_count[pointer-1]
-            # sum_packs_life_time[pointer] = sum_packs_life_time[pointer-1]
-            # subframes_count[pointer] = subframes_count[pointer-1]
-            # serviced_subframes_count[pointer] = serviced_subframes_count[pointer-1]
-            # lost_subframes_count[pointer] = lost_subframes_count[pointer-1]
-
-        
-        print(f'Указатель на {pointer}\nПараметры lambda = {system.lambda_}, число приборов = {system.servers_count}')
-        
         # генерация пакета
         if schedule[0] == t:
             indicator = True
             schedule[0] = t + system.arrival_time() # определение времени следующей генерации
             pack += 1 
-            packs_count[pointer] += 1
+            packs_count += 1
             demands_count = system.pack_size(b) # определение размера пакета
-            subframes_count[pointer] += demands_count
+            subframes_count += demands_count
             system.packs += 1
             print(f'\tПакет {pack} из {demands_count} требований поступил в систему')
             # создание требований из пакета
@@ -105,7 +71,7 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                     system.demands[serviced_demand][-1] = system.servers_count
                     break
             schedule[server + 1] = t_max + 1
-            serviced_subframes_count[pointer] += 1
+            serviced_subframes_count += 1
             print(f'\tтребование {serviced_demand} завершило обслуживаться на приборе {server + 1} и ожидает сборки')
 
             # проверка: если все требования одного пакета ожидают сборки, то требование выходит из системы
@@ -132,8 +98,8 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                     system.demands.pop(item[0])
                 print(f'\n\tсобраны в пакет {item[1][1]} и покидают систему')
                 system.packs -= 1
-                ready_packs_count[pointer] += 1
-                sum_packs_life_time[pointer] += t - item[1][0]
+                ready_packs_count += 1
+                sum_packs_life_time += t - item[1][0]
             
             system.update_time_states(t)
 
@@ -142,15 +108,14 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
             system.update_time_states(t)
             # print(schedule)
             t = min(schedule)
-            
+
+            # проверка: если какие-то фрагменты обслуживаются дольше порога
+            # то заносятся в список new pack
             new_pack = list()
             for demand in system.demands.keys():
                 if t - system.demands[demand][0] > service_time_threshold:
-                    # for other_demand in system.demands.keys():
-                        # if demand != other_demand and system.demands[other_demand][1] == system.demands[demand][1]:
-                            # new_pack.append((other_demand, system.demands[other_demand]))
                     new_pack.append(demand)
-                    # break
+            # если new pack не пустой, то
             if new_pack:
                 print('\tтребования:', end=' ')
                 for item in new_pack:
@@ -170,44 +135,54 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                         raise KeyError
                 print(f'\n\tтеряются')
                 system.packs -= 1
-                lost_packs_count[pointer] += 1
-
-
-        
+                lost_packs_count += 1
         # system.export_demands()
         # system.demands.clear()
 
     print(f'\nВсего пакетов получено: {pack}')
-    print(f'Обслужено пакетов: {sum(ready_packs_count)}')
-    print(f'Потеряно пакетов: {sum(lost_packs_count)}')
-    print(f'Среднее время пребывания пакета в системе: {sum(sum_packs_life_time) / sum(ready_packs_count) if sum(ready_packs_count) != 0 else 0}')
-    print(f'\nВсего фрагментов получено: {sum(subframes_count)}')
-    print(f'Обслужено фрагментов: {sum(serviced_subframes_count)}')
-    print(f'Потеряно фрагментов: {sum(lost_subframes_count)}')
+    print(f'Обслужено пакетов: {ready_packs_count}')
+    print(f'Потеряно пакетов: {lost_packs_count}')
+    print(f'Среднее время пребывания пакета в системе: {sum_packs_life_time / ready_packs_count if ready_packs_count != 0 else 0}')
+    print(f'\nВсего фрагментов получено: {subframes_count}')
+    print(f'Обслужено фрагментов: {serviced_subframes_count}')
+    print(f'Потеряно фрагментов: {lost_subframes_count}')
     with open('output.txt', 'w') as f:
         f.write(f'Оценка стационарного распределения вероятностей состояний системы:\n')
-        [f.write(f'\tp(n = {n}) = {state / t_max}\n') for n, state in system.import_states().items()]
+        sum_np = 0
+        for n, state in system.import_states().items():
+            p_tmp = state / t_max
+            sum_np += int(n) * p_tmp
+        f.write(f'\tp(n = {n}) = {p_tmp}\n')
     print(f'Проверка оценки стационарного распределения: {sum([state / t_max for state in system.import_states().values()])}')
+    print(f'Среднее число фрагментов в системе: {sum_np}')
 
-    plt.figure(1)
-    plt.plot(servers_count_samples, [a / b if b != 0 else 0 for a, b in zip(lost_packs_count, packs_count)])
-    plt.title(r'Зависимость $p_{lost}$ от количества приборов')
-    plt.xlabel(r'количество приборов')
-    plt.ylabel(r'$p_{lost}$')
-    plt.savefig('servers+plost')
+    results = {'Total packages': pack,
+               'Mean package lifetime': sum_packs_life_time / ready_packs_count if ready_packs_count != 0 else 0,
+               'Serviced packages': ready_packs_count,
+               'Lost packages': lost_packs_count,
+               'Total jobs': subframes_count,
+               'Serviced jobs': serviced_subframes_count,
+               'Lost jobs': lost_subframes_count,
+               'Mean jobs': sum_np}
 
-    plt.figure(2)
-    plt.plot(lambda_samples, [a / b if b != 0 else 0 for a, b in zip(sum_packs_life_time, ready_packs_count)])
-    plt.title(r'Зависимость $\overline{u}$ от $\lambda$')
-    plt.xlabel(r'$\lambda$')
-    plt.ylabel(r'$\overline{u}$')
-    plt.savefig('lambda+lifetime')
+    file = f'{round(lambda_, 3)}-{kappa}-{round(mu, 3)}-{b}-{service_time_threshold}.json'
+    with open(f'out/{file}', 'w') as f:
+        json.dump(results, f)
+    
+    print('\n\nDone!')
+    exit()
 
-if __name__ == "__main__":
+if len(sys.argv) == 1:
     lambda_ = 1 / 10 # интенсивность входящего потока
-    servers_count = 70 # число приборов
+    kappa = 70 # число приборов
     mu = 1 / 281 # интенсивность обслуживания
     b = 1 # средний размер пакета
     service_time_threshold = 100 # ограничение на время обслуживания пакета
-    system = Mx_M_C(lambda_, servers_count, mu)
-    simulation(system, b, service_time_threshold)
+else:
+    lambda_ = float(sys.argv[1]) # интенсивность входящего потока
+    kappa = int(float(sys.argv[2])) # число приборов
+    mu = float(sys.argv[3]) # интенсивность обслуживания
+    b = float(sys.argv[4]) # средний размер пакета
+    service_time_threshold = float(sys.argv[5]) # ограничение на время обслуживания пакета
+system = Mx_M_C(lambda_, kappa, mu)
+simulation(system, b, service_time_threshold)

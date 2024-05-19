@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 def simulation(system:Mx_M_C, b:float, service_time_threshold):
     t = 0 # текущее модельное время
     t_max = round(10**6 / lambda_) # максимальное модельное время
-    # t_max = 10**3
+    t_max = 10**3
     pack = 0 # номер очередного пакета
     schedule = [t_max + 1] * (system.servers_count + 1) # таблица расписания событий
     schedule[0] = 0 # генерация очередного требования произойдёт в момент времени 0
@@ -27,6 +27,7 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
         indicator = False # указывает на то, происходит сейчас какое-то событие или 
                           # нужно продвинуть модельное время
         print(f'\n{t}:')
+        # system.demands = system.import_demands()
         
         # генерация пакета
         if schedule[0] == t:
@@ -130,6 +131,7 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                     print(f'{item}', end=' ')
                     try:
                         system.demands.pop(item)
+                        lost_subframes_count += 1
                     except KeyError:
                         print(new_pack)
                         raise KeyError
@@ -137,7 +139,9 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
                 system.packs -= 1
                 lost_packs_count += 1
         # system.export_demands()
-        # system.demands.clear()
+
+    lost_packs_count += system.packs
+    lost_subframes_count += len(system.demands)
 
     print(f'\nВсего пакетов получено: {pack}')
     print(f'Обслужено пакетов: {ready_packs_count}')
@@ -175,6 +179,7 @@ def simulation(system:Mx_M_C, b:float, service_time_threshold):
 if len(sys.argv) == 1:
     lambda_ = 1 / 10 # интенсивность входящего потока
     kappa = 70 # число приборов
+    kappa = 0 # число приборов
     mu = 1 / 281 # интенсивность обслуживания
     b = 1 # средний размер пакета
     service_time_threshold = 100 # ограничение на время обслуживания пакета

@@ -70,13 +70,11 @@ class Mx_M_C:
     def export_demands(self) -> None:
         with open(f'demands.json', 'w') as f:
             json.dump(self.demands, f)
-        self.demands.clear()
 
     # запись данных о состояниях в файл
     def export_states(self) -> None:
         with open(f'states.json', 'w') as f:
             json.dump(self.states, f)
-        self.states.clear()
     
     # получение данных о требованиях из файла
     def import_demands(self) -> dict:
@@ -90,7 +88,7 @@ class Mx_M_C:
 
     # перечисление текущих требований в системе
     def current_demands(self) -> tuple:
-        return (item for item in self.demands.keys())
+        return tuple(item for item in self.demands.keys())
     
     # обновление данных о состояниях
     def update_time_states(self, t_now:float) -> None:
